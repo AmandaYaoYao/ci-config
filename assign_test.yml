@@ -1,0 +1,27 @@
+assign_test:
+  tags:
+    - adf_assign_test
+  image: $CI_DOCKER_REGISTRY/audio_test_env$BOT_DOCKER_IMAGE_TAG
+  stage: assign_test
+  # gitlab ci do not support match job with RegEx or wildcard now in dependencies.
+  # we have a lot build example jobs. now we don't use dependencies, just download all artificats of build stage.
+  dependencies:
+    - adf_ut_make_v42
+    # - build_examples_v33_make
+    # - build_examples_v40_cmake
+  variables:
+    TEST_FW_PATH: "$CI_PROJECT_DIR/general_test_framework"
+    EXAMPLE_CONFIG_OUTPUT_PATH: "$CI_PROJECT_DIR/examples/test_configs"
+    AUTO_TEST_PATH: "$CI_PROJECT_DIR/audio_auto_test"
+  artifacts:
+    paths:
+      - $TEST_FW_PATH
+      - $EXAMPLE_CONFIG_OUTPUT_PATH
+      - $AUTO_TEST_PATH
+    expire_in: 1 mos
+  before_script: *add_gitlab_key_before
+  script:
+    - git clone ${AUDIO_AUTO_REPO}
+    - git clone ${TEST_FW_REPO}
+    # assign example tests
+    - python $TEST_FW_PATH/CIAssignExampleTest.py $CI_PROJECT_DIR/examples $CI_PROJECT_DIR/.gitlab-ci.yml $EXAMPLE_CONFIG_OUTPUT_PATH
